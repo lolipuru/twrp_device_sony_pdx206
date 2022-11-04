@@ -91,11 +91,15 @@ BOARD_AVB_RECOVERY_ROLLBACK_INDEX_LOCATION := 1
 # Partitions
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x06000000
 
+SOMC_PARTITIONS := product system
+SOMC_TREBLE_PARTITIONS := odm vendor
+ALL_PARTITIONS := $(SOMC_PARTITIONS) $(SOMC_TREBLE_PARTITIONS)
+
 # Dynamic Partition
 BOARD_SUPER_PARTITION_SIZE := 12884901888
 BOARD_SUPER_PARTITION_GROUPS := somc_dynamic_partitions
 BOARD_SOMC_DYNAMIC_PARTITIONS_SIZE := 6438256640
-BOARD_SOMC_DYNAMIC_PARTITIONS_PARTITION_LIST := product vendor system odm
+BOARD_SOMC_DYNAMIC_PARTITIONS_PARTITION_LIST := $(ALL_PARTITIONS)
 
 # System as root
 BOARD_ROOT_EXTRA_FOLDERS := bluetooth dsp firmware persist
@@ -109,8 +113,9 @@ TARGET_USERIMAGES_USE_F2FS := true
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery/root/system/etc/recovery.fstab
 
 # Workaround for error copying vendor files to recovery ramdisk
-BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
-TARGET_COPY_OUT_VENDOR := vendor
+$(foreach p, $(call to-upper, $(ALL_PARTITIONS)), \
+    $(eval BOARD_$(p)IMAGE_FILE_SYSTEM_TYPE := erofs) \
+    $(eval TARGET_COPY_OUT_$(p) := $(call to-lower, $(p))))
 
 #Init
 TARGET_PLATFORM_DEVICE_BASE := /devices/soc/
